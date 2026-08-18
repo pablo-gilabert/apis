@@ -1,3 +1,4 @@
+import type { Category } from "../types/Category"
 import type { Product } from "../types/Product"
 
 export const getProducts = async (): Promise<Product[]> => {
@@ -43,7 +44,7 @@ export const searchProducts = async (
   return data.products
 }
 
-export const getCategories = async (): Promise<string[]> => {
+export const getCategories = async (): Promise<Category[]> => {
 
   const response = await fetch(
     "https://dummyjson.com/products/categories"
@@ -54,4 +55,21 @@ export const getCategories = async (): Promise<string[]> => {
   }
 
   return response.json()
+}
+
+export const getProductsByCategory = async (
+  category: string
+): Promise<Product[]> => {
+
+  const response = await fetch(
+    `https://dummyjson.com/products/category/${encodeURIComponent(category)}`
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch products by category")
+  }
+
+  const data = await response.json()
+
+  return data.products
 }
