@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { FormEvent } from "react"
+import type { ChangeEvent, FormEvent } from "react"
 
 import { useQuery } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
@@ -11,7 +11,11 @@ import {
   searchProducts,
 } from "../../services/products"
 
+import type { ProductSort } from "../../services/products"
+
 import ProductCard from "../../components/ProductCard/ProductCard"
+
+const PRODUCTS_PER_PAGE = 12
 
 const Products = () => {
 
@@ -19,47 +23,65 @@ const Products = () => {
 
   const search = searchParams.get("search") ?? ""
   const category = searchParams.get("category") ?? ""
-  const sort = searchParams.get("sort") ?? ""
+  const sort = (searchParams.get("sort") ?? "") as ProductSort
+
+  const currentPage = Number(
+    searchParams.get("page") ?? "1"
+  )
+
+  const page = currentPage > 0 ? currentPage : 1
+
+  const skip = (page - 1) * PRODUCTS_PER_PAGE
 
   const [searchInput, setSearchInput] = useState(search)
 
-  // Fetches products according to the selected category and search query.
   const {
     data,
     isLoading,
     isError,
     error,
+    isFetching,
   } = useQuery({
-    queryKey: ["products", search, category],
+    queryKey: [
+      "products",
+      search,
+      category,
+      sort,
+      page,
+    ],
 
     queryFn: async () => {
 
-      let products
-
       if (category) {
-        products = await getProductsByCategory(category)
-      } else if (search) {
-        products = await searchProducts(search)
-      } else {
-        products = await getProducts()
-      }
 
-      // When both filters are active, the search is applied
-      // to the products returned by the selected category.
-      if (category && search) {
-
-        const normalizedSearch = search.toLowerCase()
-
-        products = products.filter((product) =>
-          product.title.toLowerCase().includes(normalizedSearch)
+        return getProductsByCategory(
+          category,
+          PRODUCTS_PER_PAGE,
+          skip,
+          sort
         )
       }
 
-      return products
+      if (search) {
+
+        return searchProducts(
+          search,
+          PRODUCTS_PER_PAGE,
+          skip,
+          sort
+        )
+      }
+
+      return getProducts({
+        limit: PRODUCTS_PER_PAGE,
+        skip,
+        sort,
+      })
     },
+
+    placeholderData: (previousData) => previousData,
   })
 
-  // Fetches the available product categories.
   const {
     data: categories,
     isLoading: categoriesLoading,
@@ -69,14 +91,17 @@ const Products = () => {
     queryFn: getCategories,
   })
 
-  // Updates the search parameter when the form is submitted.
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (
+    event: FormEvent<HTMLFormElement>
+  ) => {
 
     event.preventDefault()
 
     const trimmedSearch = searchInput.trim()
 
-    const params: Record<string, string> = {}
+    const params: Record<string, string> = {
+      page: "1",
+    }
 
     if (trimmedSearch) {
       params.search = trimmedSearch
@@ -93,12 +118,13 @@ const Products = () => {
     setSearchParams(params)
   }
 
-  // Clears the current search while keeping the selected filters.
   const handleClear = () => {
 
     setSearchInput("")
 
-    const params: Record<string, string> = {}
+    const params: Record<string, string> = {
+      page: "1",
+    }
 
     if (category) {
       params.category = category
@@ -111,12 +137,13 @@ const Products = () => {
     setSearchParams(params)
   }
 
-  // Updates the URL with the selected category while preserving
-  // the current search and sort options.
-  const handleCategoryChange = (selectedCategory: string) => {
+  const handleCategoryChange = (
+    selectedCategory: string
+  ) => {
 
     const params: Record<string, string> = {
       category: selectedCategory,
+      page: "1",
     }
 
     if (search) {
@@ -130,11 +157,11 @@ const Products = () => {
     setSearchParams(params)
   }
 
-  // Clears the selected category while preserving
-  // the current search and sort options.
   const handleCategoryClear = () => {
 
-    const params: Record<string, string> = {}
+    const params: Record<string, string> = {
+      page: "1",
+    }
 
     if (search) {
       params.search = search
@@ -147,15 +174,15 @@ const Products = () => {
     setSearchParams(params)
   }
 
-  // Updates the sort parameter while preserving
-  // the current search and category.
   const handleSortChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: ChangeEvent<HTMLSelectElement>
   ) => {
 
-    const selectedSort = event.target.value
+    const selectedSort = event.target.value as ProductSort
 
-    const params: Record<string, string> = {}
+    const params: Record<string, string> = {
+      page: "1",
+    }
 
     if (search) {
       params.search = search
@@ -172,37 +199,35 @@ const Products = () => {
     setSearchParams(params)
   }
 
-  // Creates a new array before sorting so the data returned by
-  // TanStack Query is not mutated directly.
-  const sortedProducts = data
-    ? [...data].sort((a, b) => {
+  const handlePageChange = (
+    newPage: number
+  ) => {
 
-        switch (sort) {
+    const params: Record<string, string> = {
+      page: String(newPage),
+    }
 
-          case "price-asc":
-            return a.price - b.price
+    if (search) {
+      params.search = search
+    }
 
-          case "price-desc":
-            return b.price - a.price
+    if (category) {
+      params.category = category
+    }
 
-          case "rating-desc":
-            return b.rating - a.rating
+    if (sort) {
+      params.sort = sort
+    }
 
-          case "rating-asc":
-            return a.rating - b.rating
+    setSearchParams(params)
+  }
 
-          case "title-asc":
-            return a.title.localeCompare(b.title)
+  const totalPages = data
+    ? Math.ceil(data.total / PRODUCTS_PER_PAGE)
+    : 0
 
-          case "title-desc":
-            return b.title.localeCompare(a.title)
-
-          default:
-            return 0
-        }
-
-      })
-    : []
+  const hasPreviousPage = page > 1
+  const hasNextPage = page < totalPages
 
   if (isLoading) {
     return <p>Loading products...</p>
@@ -313,9 +338,13 @@ const Products = () => {
 
       </div>
 
+      {isFetching && (
+        <p>Updating products...</p>
+      )}
+
       <div>
 
-        {sortedProducts.map((product) => (
+        {data?.products.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
@@ -323,6 +352,34 @@ const Products = () => {
         ))}
 
       </div>
+
+      {totalPages > 1 && (
+
+        <nav>
+
+          <button
+            type="button"
+            onClick={() => handlePageChange(page - 1)}
+            disabled={!hasPreviousPage}
+          >
+            Previous
+          </button>
+
+          <span>
+            Page {page} of {totalPages}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => handlePageChange(page + 1)}
+            disabled={!hasNextPage}
+          >
+            Next
+          </button>
+
+        </nav>
+
+      )}
 
     </section>
   )

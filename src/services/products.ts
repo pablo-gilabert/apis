@@ -1,20 +1,102 @@
 import type { Category } from "../types/Category"
 import type { Product } from "../types/Product"
+import type { ProductResponse } from "../types/ProductResponse"
 
-export const getProducts = async (): Promise<Product[]> => {
+export type ProductSort =
+  | ""
+  | "price-asc"
+  | "price-desc"
+  | "rating-desc"
+  | "rating-asc"
+  | "title-asc"
+  | "title-desc"
 
-  const response = await fetch("https://dummyjson.com/products")
+interface FetchProductsParams {
+  limit: number
+  skip: number
+  sort?: ProductSort
+}
+
+const getSortParams = (sort: ProductSort) => {
+
+  switch (sort) {
+
+    case "price-asc":
+      return {
+        sortBy: "price",
+        order: "asc",
+      }
+
+    case "price-desc":
+      return {
+        sortBy: "price",
+        order: "desc",
+      }
+
+    case "rating-desc":
+      return {
+        sortBy: "rating",
+        order: "desc",
+      }
+
+    case "rating-asc":
+      return {
+        sortBy: "rating",
+        order: "asc",
+      }
+
+    case "title-asc":
+      return {
+        sortBy: "title",
+        order: "asc",
+      }
+
+    case "title-desc":
+      return {
+        sortBy: "title",
+        order: "desc",
+      }
+
+    default:
+      return {}
+  }
+}
+
+export const getProducts = async ({
+  limit,
+  skip,
+  sort = "",
+}: FetchProductsParams): Promise<ProductResponse> => {
+
+  const sortParams = getSortParams(sort)
+
+  const params = new URLSearchParams({
+    limit: String(limit),
+    skip: String(skip),
+  })
+
+  if (sortParams.sortBy) {
+    params.set("sortBy", sortParams.sortBy)
+  }
+
+  if (sortParams.order) {
+    params.set("order", sortParams.order)
+  }
+
+  const response = await fetch(
+    `https://dummyjson.com/products?${params.toString()}`
+  )
 
   if (!response.ok) {
     throw new Error("Failed to fetch products")
   }
 
-  const data = await response.json()
-
-  return data.products
+  return response.json()
 }
 
-export const getProduct = async (id: number): Promise<Product> => {
+export const getProduct = async (
+  id: number
+): Promise<Product> => {
 
   const response = await fetch(
     `https://dummyjson.com/products/${id}`
@@ -28,20 +110,37 @@ export const getProduct = async (id: number): Promise<Product> => {
 }
 
 export const searchProducts = async (
-  query: string
-): Promise<Product[]> => {
+  query: string,
+  limit: number,
+  skip: number,
+  sort: ProductSort = ""
+): Promise<ProductResponse> => {
+
+  const sortParams = getSortParams(sort)
+
+  const params = new URLSearchParams({
+    q: query,
+    limit: String(limit),
+    skip: String(skip),
+  })
+
+  if (sortParams.sortBy) {
+    params.set("sortBy", sortParams.sortBy)
+  }
+
+  if (sortParams.order) {
+    params.set("order", sortParams.order)
+  }
 
   const response = await fetch(
-    `https://dummyjson.com/products/search?q=${encodeURIComponent(query)}`
+    `https://dummyjson.com/products/search?${params.toString()}`
   )
 
   if (!response.ok) {
     throw new Error("Failed to search products")
   }
 
-  const data = await response.json()
-
-  return data.products
+  return response.json()
 }
 
 export const getCategories = async (): Promise<Category[]> => {
@@ -58,18 +157,34 @@ export const getCategories = async (): Promise<Category[]> => {
 }
 
 export const getProductsByCategory = async (
-  category: string
-): Promise<Product[]> => {
+  category: string,
+  limit: number,
+  skip: number,
+  sort: ProductSort = ""
+): Promise<ProductResponse> => {
+
+  const sortParams = getSortParams(sort)
+
+  const params = new URLSearchParams({
+    limit: String(limit),
+    skip: String(skip),
+  })
+
+  if (sortParams.sortBy) {
+    params.set("sortBy", sortParams.sortBy)
+  }
+
+  if (sortParams.order) {
+    params.set("order", sortParams.order)
+  }
 
   const response = await fetch(
-    `https://dummyjson.com/products/category/${encodeURIComponent(category)}`
+    `https://dummyjson.com/products/category/${encodeURIComponent(category)}?${params.toString()}`
   )
 
   if (!response.ok) {
     throw new Error("Failed to fetch products by category")
   }
 
-  const data = await response.json()
-
-  return data.products
+  return response.json()
 }
