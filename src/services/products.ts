@@ -1,6 +1,6 @@
 import type { Product } from "../types/Product"
 
-export const getProducts = async () : Promise<Product[]> => {
+export const getProducts = async (): Promise<Product[]> => {
 
   const response = await fetch("https://dummyjson.com/products")
 
@@ -13,7 +13,7 @@ export const getProducts = async () : Promise<Product[]> => {
   return data.products
 }
 
-export const getProduct = async (id: number) : Promise<Product> => {
+export const getProduct = async (id: number): Promise<Product> => {
 
   const response = await fetch(
     `https://dummyjson.com/products/${id}`
@@ -21,6 +21,36 @@ export const getProduct = async (id: number) : Promise<Product> => {
 
   if (!response.ok) {
     throw new Error("Failed to fetch product")
+  }
+
+  return response.json()
+}
+
+export const searchProducts = async (
+  query: string
+): Promise<Product[]> => {
+
+  const response = await fetch(
+    `https://dummyjson.com/products/search?q=${encodeURIComponent(query)}`
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to search products")
+  }
+
+  const data = await response.json()
+
+  return data.products
+}
+
+export const getCategories = async (): Promise<string[]> => {
+
+  const response = await fetch(
+    "https://dummyjson.com/products/categories"
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch categories")
   }
 
   return response.json()
