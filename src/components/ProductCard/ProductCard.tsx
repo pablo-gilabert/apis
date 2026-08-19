@@ -1,6 +1,12 @@
 import type { Product } from "../../types/Product"
 
+import { FaStar} from "react-icons/fa6";
+
+import { MdOutlinePriceCheck } from "react-icons/md";
+
 import { Link } from "react-router-dom"
+
+import { formatCategory } from "../../utils/formatCategory"
 
 import styles from "./ProductCard.module.css"
 
@@ -21,17 +27,33 @@ const ProductCard = ({ product } : ProductCardProps) => {
         alt={product.title}
       />
 
-      <h2 className={styles.title}>
-        {product.title}
-      </h2>
+      <div className={styles.background}>
 
-      <p className={styles.description}>
-        {product.description}
-      </p>
+        <h1 className={styles.category}>
+          {formatCategory(product.category)}
+        </h1>
 
-      <span className={styles.price}>
-        ${product.price}
-      </span>
+        <h2 className={styles.title}>
+          {product.title}
+        </h2>
+
+        <p className={styles.rating}>
+          <FaStar className={styles.ratingIcon}/>
+
+          {product.rating}  
+        </p>      
+
+        <p className={styles.price}>
+          <MdOutlinePriceCheck className={styles.priceIcon}/>
+
+          {product.price}
+        </p>
+
+        <p className={styles.details}>
+          See details...
+        </p>
+
+      </div>
 
     </article>
   </Link>

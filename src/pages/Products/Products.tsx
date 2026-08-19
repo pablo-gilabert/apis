@@ -15,14 +15,19 @@ import type { ProductSort } from "../../services/products"
 
 import ProductCard from "../../components/ProductCard/ProductCard"
 
+import { formatCategory } from "../../utils/formatCategory"
+
+import styles from "./Products.module.css"
+
 const PRODUCTS_PER_PAGE = 12
 
 const Products = () => {
 
+  // URL parameters control the current search, category, sorting and page.
   const [searchParams, setSearchParams] = useSearchParams()
 
   const search = searchParams.get("search") ?? ""
-  const category = searchParams.get("category") ?? ""
+  const selectedCategory = searchParams.get("category") ?? ""
   const sort = (searchParams.get("sort") ?? "") as ProductSort
 
   const currentPage = Number(
@@ -31,10 +36,13 @@ const Products = () => {
 
   const page = currentPage > 0 ? currentPage : 1
 
+  // Calculates how many products must be skipped for the current page.
   const skip = (page - 1) * PRODUCTS_PER_PAGE
 
+  // Keeps the search input independent from the submitted search query.
   const [searchInput, setSearchInput] = useState(search)
 
+  // Fetches products according to the current filters.
   const {
     data,
     isLoading,
@@ -45,17 +53,17 @@ const Products = () => {
     queryKey: [
       "products",
       search,
-      category,
+      selectedCategory,
       sort,
       page,
     ],
 
     queryFn: async () => {
 
-      if (category) {
+      if (selectedCategory) {
 
         return getProductsByCategory(
-          category,
+          selectedCategory,
           PRODUCTS_PER_PAGE,
           skip,
           sort
@@ -79,9 +87,11 @@ const Products = () => {
       })
     },
 
+    // Keeps the previous page visible while the next page is loading.
     placeholderData: (previousData) => previousData,
   })
 
+  // Fetches all available product categories.
   const {
     data: categories,
     isLoading: categoriesLoading,
@@ -91,6 +101,7 @@ const Products = () => {
     queryFn: getCategories,
   })
 
+  // Submits the search form and updates the URL parameters.
   const handleSubmit = (
     event: FormEvent<HTMLFormElement>
   ) => {
@@ -107,8 +118,8 @@ const Products = () => {
       params.search = trimmedSearch
     }
 
-    if (category) {
-      params.category = category
+    if (selectedCategory) {
+      params.category = selectedCategory
     }
 
     if (sort) {
@@ -118,6 +129,7 @@ const Products = () => {
     setSearchParams(params)
   }
 
+  // Clears the current search while preserving the other filters.
   const handleClear = () => {
 
     setSearchInput("")
@@ -126,8 +138,8 @@ const Products = () => {
       page: "1",
     }
 
-    if (category) {
-      params.category = category
+    if (selectedCategory) {
+      params.category = selectedCategory
     }
 
     if (sort) {
@@ -137,12 +149,13 @@ const Products = () => {
     setSearchParams(params)
   }
 
+  // Changes the selected category and resets pagination.
   const handleCategoryChange = (
-    selectedCategory: string
+    categorySlug: string
   ) => {
 
     const params: Record<string, string> = {
-      category: selectedCategory,
+      category: categorySlug,
       page: "1",
     }
 
@@ -157,6 +170,7 @@ const Products = () => {
     setSearchParams(params)
   }
 
+  // Removes the active category filter.
   const handleCategoryClear = () => {
 
     const params: Record<string, string> = {
@@ -174,6 +188,7 @@ const Products = () => {
     setSearchParams(params)
   }
 
+  // Changes sorting and resets pagination.
   const handleSortChange = (
     event: ChangeEvent<HTMLSelectElement>
   ) => {
@@ -188,8 +203,8 @@ const Products = () => {
       params.search = search
     }
 
-    if (category) {
-      params.category = category
+    if (selectedCategory) {
+      params.category = selectedCategory
     }
 
     if (selectedSort) {
@@ -199,6 +214,7 @@ const Products = () => {
     setSearchParams(params)
   }
 
+  // Changes the current page while preserving active filters.
   const handlePageChange = (
     newPage: number
   ) => {
@@ -211,8 +227,8 @@ const Products = () => {
       params.search = search
     }
 
-    if (category) {
-      params.category = category
+    if (selectedCategory) {
+      params.category = selectedCategory
     }
 
     if (sort) {
@@ -222,166 +238,240 @@ const Products = () => {
     setSearchParams(params)
   }
 
-  const totalPages = data
-    ? Math.ceil(data.total / PRODUCTS_PER_PAGE)
-    : 0
+  if (isLoading) {
+    return (
+      <p>Loading products...</p>
+    )
+  }
+
+  if (isError) {
+    return (
+      <p>Error: {error.message}</p>
+    )
+  }
+
+  // TypeScript can now safely assume that data exists below this point.
+  if (!data) {
+    return null
+  }
+
+  // Calculates the total number of pages.
+  const totalPages = Math.ceil(
+    data.total / PRODUCTS_PER_PAGE
+  )
 
   const hasPreviousPage = page > 1
   const hasNextPage = page < totalPages
 
-  if (isLoading) {
-    return <p>Loading products...</p>
-  }
-
-  if (isError) {
-    return <p>Error: {error.message}</p>
-  }
-
   return (
 
-    <section>
+    <main className={styles.products}>
 
-      <form onSubmit={handleSubmit}>
+      {/* Page heading. */}
+      <header className={styles.header}>
+
+        <h1 className={styles.title}>
+          PRODUCTS
+        </h1>
+
+        <p className={styles.subtitle}>
+          Browse our collection of products.
+        </p>
+
+      </header>
+
+      {/* Search controls. */}
+      <form
+        className={styles.searchForm}
+        onSubmit={handleSubmit}
+      >
 
         <input
+          className={styles.searchInput}
           type="search"
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
           placeholder="Search products..."
         />
 
-        <button type="submit">
-          Search
+        <button
+          className={styles.searchButton}
+          type="submit"
+        >
+          SEARCH
         </button>
 
         {search && (
           <button
+            className={styles.clearButton}
             type="button"
             onClick={handleClear}
           >
-            Clear
+            CLEAR
           </button>
         )}
 
       </form>
 
-      <div>
+      {/* Category filter controls. */}
+      <section className={styles.categories}>
 
-        {categoriesLoading && (
-          <p>Loading categories...</p>
-        )}
+        <h2 className={styles.sectionTitle}>
+          CATEGORIES
+        </h2>
 
-        {categoriesError && (
-          <p>Failed to load categories.</p>
-        )}
+        <div className={styles.categoryList}>
 
-        {categories?.map((category) => (
           <button
-            key={category.slug}
-            type="button"
-            onClick={() => handleCategoryChange(category.slug)}
-          >
-            {category.name}
-          </button>
-        ))}
-
-        {category && (
-          <button
+            className={
+              !selectedCategory
+                ? styles.categoryActive
+                : styles.category
+            }
             type="button"
             onClick={handleCategoryClear}
           >
-            All products
+            All
           </button>
-        )}
 
-      </div>
+          {categoriesLoading && (
+            <p>Loading categories...</p>
+          )}
 
-      <div>
+          {categoriesError && (
+            <p>Failed to load categories.</p>
+          )}
 
-        <label htmlFor="sort">
-          Sort by:
-        </label>
+          {categories?.map((categoryItem) => (
+            <button
+              className={
+                categoryItem.slug === selectedCategory
+                  ? styles.categoryActive
+                  : styles.category
+              }
+              key={categoryItem.slug}
+              type="button"
+              onClick={() => handleCategoryChange(categoryItem.slug)}
+            >
+              {formatCategory(categoryItem.name)}
+            </button>
+          ))}
 
-        <select
-          id="sort"
-          value={sort}
-          onChange={handleSortChange}
-        >
-          <option value="">
-            Default
-          </option>
+        </div>
 
-          <option value="price-asc">
-            Price: Low to High
-          </option>
+      </section>
 
-          <option value="price-desc">
-            Price: High to Low
-          </option>
+      {/* Sorting controls and product count. */}
+      <section className={styles.toolbar}>
 
-          <option value="rating-desc">
-            Rating: Highest
-          </option>
+        <span className={styles.productCount}>
+          {data.total} products
+        </span>
 
-          <option value="rating-asc">
-            Rating: Lowest
-          </option>
+        <div className={styles.sortWrapper}>
 
-          <option value="title-asc">
-            Name: A to Z
-          </option>
+          <label
+            className={styles.sortLabel}
+            htmlFor="sort"
+          >
+            Sort by:
+          </label>
 
-          <option value="title-desc">
-            Name: Z to A
-          </option>
-        </select>
+          <select
+            className={styles.sort}
+            id="sort"
+            value={sort}
+            onChange={handleSortChange}
+          >
 
-      </div>
+            <option value="">
+              Default
+            </option>
 
+            <option value="price-asc">
+              Price: Low to High
+            </option>
+
+            <option value="price-desc">
+              Price: High to Low
+            </option>
+
+            <option value="rating-desc">
+              Rating: Highest
+            </option>
+
+            <option value="rating-asc">
+              Rating: Lowest
+            </option>
+
+            <option value="title-asc">
+              Name: A to Z
+            </option>
+
+            <option value="title-desc">
+              Name: Z to A
+            </option>
+
+          </select>
+
+        </div>
+
+      </section>
+
+      {/* Shows a loading indicator while filters or pages are updating. */}
       {isFetching && (
-        <p>Updating products...</p>
+        <p className={styles.loading}>
+          Updating products...
+        </p>
       )}
 
-      <div>
+      {/* Product grid. */}
+      <section className={styles.grid}>
 
-        {data?.products.map((product) => (
+        {data.products.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
           />
         ))}
 
-      </div>
+      </section>
 
+      {/* Pagination controls. */}
       {totalPages > 1 && (
 
-        <nav>
+        <nav
+          className={styles.pagination}
+          aria-label="Product pagination"
+        >
 
           <button
+            className={styles.pageButton}
             type="button"
             onClick={() => handlePageChange(page - 1)}
             disabled={!hasPreviousPage}
           >
-            Previous
+            PREVIOUS
           </button>
 
-          <span>
+          <span className={styles.pageInfo}>
             Page {page} of {totalPages}
           </span>
 
           <button
+            className={styles.pageButton}
             type="button"
             onClick={() => handlePageChange(page + 1)}
             disabled={!hasNextPage}
           >
-            Next
+            NEXT
           </button>
 
         </nav>
 
       )}
 
-    </section>
+    </main>
   )
 }
 
