@@ -270,10 +270,6 @@ const Products = () => {
       {/* Page heading. */}
       <header className={styles.header}>
 
-        <h1 className={styles.title}>
-          PRODUCTS
-        </h1>
-
         <p className={styles.subtitle}>
           Browse our collection of products.
         </p>
@@ -283,8 +279,7 @@ const Products = () => {
       {/* Search controls. */}
       <form
         className={styles.searchForm}
-        onSubmit={handleSubmit}
-      >
+        onSubmit={handleSubmit}>
 
         <input
           className={styles.searchInput}
@@ -296,18 +291,16 @@ const Products = () => {
 
         <button
           className={styles.searchButton}
-          type="submit"
-        >
-          SEARCH
+          type="submit">
+          Search
         </button>
 
         {search && (
           <button
             className={styles.clearButton}
             type="button"
-            onClick={handleClear}
-          >
-            CLEAR
+            onClick={handleClear}>
+            Clear
           </button>
         )}
 
@@ -315,10 +308,6 @@ const Products = () => {
 
       {/* Category filter controls. */}
       <section className={styles.categories}>
-
-        <h2 className={styles.sectionTitle}>
-          CATEGORIES
-        </h2>
 
         <div className={styles.categoryList}>
 
