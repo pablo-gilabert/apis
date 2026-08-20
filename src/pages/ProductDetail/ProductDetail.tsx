@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query"
-import { useParams } from "react-router-dom"
+import { useParams} from "react-router-dom"
 
 import { getProduct } from "../../services/products"
+
+import styles from "./ProductDetail.module.css"
 
 const ProductDetail = () => {
 
@@ -31,18 +33,27 @@ const ProductDetail = () => {
   }
 
   return (
-    <main>
+    <main className={styles.main}>
 
-      <img
+      <img 
+        className={styles.image}
         src={data.thumbnail}
         alt={data.title}
       />
 
-      <h1>{data.title}</h1>
+      <h1 
+        className={styles.title}>
+        {data.title}
+      </h1>
 
-      <p>{data.description}</p>
+      <p 
+        className={styles.description}>
+        {data.description}
+      </p>
 
-      <p>${data.price}</p>
+      <button className={styles.buttonCart}>
+        Add to cart
+      </button>
 
     </main>
   )

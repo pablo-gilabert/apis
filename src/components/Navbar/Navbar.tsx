@@ -159,8 +159,7 @@ const Navbar = () => {
         <button
           className={styles.searchButton}
           type="submit"
-          aria-label="Search"
-        >
+          aria-label="Search">
           🔍
         </button>
 
@@ -172,11 +171,10 @@ const Navbar = () => {
         onClick={toggleMenu}
         aria-label={
           menuOpen
-            ? "Close menu"
-            : "Open menu"
+          ? "Close menu"
+          : "Open menu"
         }
-        aria-expanded={menuOpen}
-      >
+        aria-expanded={menuOpen}>
         <IoIosMenu />
       </button>
 
@@ -185,16 +183,14 @@ const Navbar = () => {
           menuOpen
             ? styles.dropdownOpen
             : ""
-        }`}
-      >
+        }`}>
 
         <NavLink
           className={styles.link}
           to="/"
           onClick={() => {
             handleNavigation("/")
-          }}
-        >
+          }}>
           Home
         </NavLink>
 
