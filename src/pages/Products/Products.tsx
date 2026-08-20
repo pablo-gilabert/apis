@@ -344,16 +344,16 @@ const Products = () => {
 
           {categories?.map((categoryItem) => (
             <button
-              className={
-                categoryItem.slug === selectedCategory
-                  ? styles.categoryActive
-                  : styles.category
-              }
-              key={categoryItem.slug}
-              type="button"
-              onClick={() => handleCategoryChange(categoryItem.slug)}
-            >
-              {formatCategory(categoryItem.name)}
+                className={
+                  categoryItem.slug === selectedCategory
+                    ? styles.categoryActive
+                    : styles.category
+                }
+                key={categoryItem.slug}
+                type="button"
+                onClick={() => handleCategoryChange(categoryItem.slug)}>
+                {/* --- CATEGORY BUTTON NAME --- */}
+                {formatCategory(categoryItem.name)}
             </button>
           ))}
 

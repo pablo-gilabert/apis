@@ -2,8 +2,6 @@ import type { Product } from "../../types/Product"
 
 import { FaStar} from "react-icons/fa6";
 
-import { MdOutlinePriceCheck } from "react-icons/md";
-
 import { Link } from "react-router-dom"
 
 import { formatCategory } from "../../utils/formatCategory"
@@ -43,11 +41,7 @@ const ProductCard = ({ product } : ProductCardProps) => {
           {product.rating}  
         </p>      
 
-        <p className={styles.price}>
-          <MdOutlinePriceCheck className={styles.priceIcon}/>
-
-          {product.price}
-        </p>
+        <p className={styles.price}>$ {product.price}</p>
 
         <p className={styles.details}>
           See details...

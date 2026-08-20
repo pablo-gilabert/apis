@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 
 import { IoIosMenu } from "react-icons/io"
-import { NavLink } from "react-router-dom"
+import { NavLink, useLocation } from "react-router-dom"
 
 import styles from "./Navbar.module.css"
 
@@ -13,6 +13,9 @@ const Navbar = () => {
   // Stores a reference to the navbar element to detect clicks outside it.
   const navbarRef = useRef<HTMLElement>(null)
 
+  // Provides access to the current URL path.
+  const location = useLocation()
+
   // Toggles the navigation menu between open and closed states.
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev)
@@ -23,6 +26,18 @@ const Navbar = () => {
     setMenuOpen(false)
   }
 
+  // Handles navigation links.
+  // If the user clicks the link corresponding to the current route,
+  // the page scrolls back to the top instead of navigating again.
+  const handleNavigation = (path: string) => {
+
+    closeMenu()
+
+    if (location.pathname === path) {
+        window.scrollTo(0, 0)
+    }
+  }
+
   // Closes the menu when the user clicks outside the navbar.
   useEffect(() => {
 
@@ -30,8 +45,10 @@ const Navbar = () => {
 
       if (
         navbarRef.current &&
-        !navbarRef.current.contains(event.target as Node)) 
-        {setMenuOpen(false)}
+        !navbarRef.current.contains(event.target as Node)
+      ) {
+        setMenuOpen(false)
+      }
 
     }
 
@@ -39,7 +56,9 @@ const Navbar = () => {
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
-    }}, [])
+    }
+
+  }, [])
 
   return (
 
@@ -55,7 +74,7 @@ const Navbar = () => {
             onClick={toggleMenu}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}>
-            <IoIosMenu/>
+            <IoIosMenu />
         </button>
 
         <div className={`${styles.dropdown} ${menuOpen ? styles.dropdownOpen : ""}`}>
@@ -63,19 +82,18 @@ const Navbar = () => {
             <NavLink
                 className={styles.link}
                 to="/"
-                onClick={closeMenu}>
+                onClick={() => handleNavigation("/")}>
                 Home
             </NavLink>
 
             <NavLink
                 className={styles.link}
                 to="/products"
-                onClick={closeMenu}>
+                onClick={() => handleNavigation("/products")}>
                 Products
             </NavLink>
 
         </div>
-
     </nav>
   )
 }

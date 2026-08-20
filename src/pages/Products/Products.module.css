@@ -1,0 +1,42 @@
+.categoryList {
+    display: flex;
+    gap: 0.75rem;
+
+    overflow-x: auto;
+
+    padding: 0.5rem 1rem;
+
+    scrollbar-width: none;
+}
+
+.categoryList::-webkit-scrollbar {
+    display: none;
+}
+
+.category {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+
+    padding: 0.5rem 1rem;
+
+    border-radius: 999px;
+
+    background-color: var(--tertiary-color);
+
+    white-space: nowrap;
+}
+
+.categoryActive {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+
+    padding: 0.5rem 1rem;
+
+    border-radius: 999px;
+
+    background-color: var(--primary-color);
+
+    white-space: nowrap;
+}

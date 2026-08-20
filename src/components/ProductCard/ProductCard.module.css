@@ -69,11 +69,6 @@
   justify-content: center;
 }
 
-.priceIcon {
-  color: rgb(0, 112, 0);
-  font-size: 1.5rem;
-}
-
 .rating {
   grid-column: 2;
   grid-row: 3;
