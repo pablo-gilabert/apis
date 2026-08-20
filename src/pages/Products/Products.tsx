@@ -1,7 +1,16 @@
-import type { ChangeEvent } from "react"
+import { useState } from "react"
+import type {
+  ChangeEvent,
+  FormEvent,
+} from "react"
 
-import { useQuery } from "@tanstack/react-query"
-import { useSearchParams } from "react-router-dom"
+import {
+  useQuery,
+} from "@tanstack/react-query"
+
+import {
+  useSearchParams,
+} from "react-router-dom"
 
 import {
   getCategories,
@@ -10,11 +19,15 @@ import {
   searchProducts,
 } from "../../services/products"
 
-import type { ProductSort } from "../../services/products"
+import type {
+  ProductSort,
+} from "../../services/products"
 
 import ProductCard from "../../components/ProductCard/ProductCard"
 
-import { formatCategory } from "../../utils/formatCategory"
+import {
+  formatCategory,
+} from "../../utils/formatCategory"
 
 import styles from "./Products.module.css"
 
@@ -22,23 +35,45 @@ const PRODUCTS_PER_PAGE = 12
 
 const Products = () => {
 
-  // URL parameters control the current search, category, sorting and page.
-  const [searchParams, setSearchParams] = useSearchParams()
+  // URL parameters control the current search,
+  // category, sorting and page.
+  const [
+    searchParams,
+    setSearchParams,
+  ] = useSearchParams()
 
-  const search = searchParams.get("search") ?? ""
-  const selectedCategory = searchParams.get("category") ?? ""
-  const sort = (searchParams.get("sort") ?? "") as ProductSort
+  const search =
+    searchParams.get("search") ?? ""
+
+  const selectedCategory =
+    searchParams.get("category") ?? ""
+
+  const sort =
+    (searchParams.get("sort") ?? "") as ProductSort
 
   const currentPage = Number(
     searchParams.get("page") ?? "1"
   )
 
-  const page = currentPage > 0 ? currentPage : 1
+  const page =
+    currentPage > 0
+      ? currentPage
+      : 1
 
-  // Calculates how many products must be skipped for the current page.
-  const skip = (page - 1) * PRODUCTS_PER_PAGE
+  // Calculates how many products must be
+  // skipped for the current page.
+  const skip =
+    (page - 1) * PRODUCTS_PER_PAGE
 
-  // Fetches products according to the current filters.
+  // Keeps the search input independent
+  // from the submitted search query.
+  const [
+    searchInput,
+    setSearchInput,
+  ] = useState(search)
+
+  // Fetches products according to
+  // the current filters.
   const {
     data,
     isLoading,
@@ -46,6 +81,7 @@ const Products = () => {
     error,
     isFetching,
   } = useQuery({
+
     queryKey: [
       "products",
       search,
@@ -83,11 +119,15 @@ const Products = () => {
       })
     },
 
-    // Keeps the previous page visible while the next page is loading.
-    placeholderData: (previousData) => previousData,
+    // Keeps the previous page visible
+    // while the next page is loading.
+    placeholderData: (
+      previousData
+    ) => previousData,
   })
 
-  // Fetches all available product categories.
+  // Fetches all available
+  // product categories.
   const {
     data: categories,
     isLoading: categoriesLoading,
@@ -97,7 +137,61 @@ const Products = () => {
     queryFn: getCategories,
   })
 
-  // Changes the selected category and resets pagination.
+  // Submits the search form
+  // and updates the URL parameters.
+  const handleSubmit = (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+
+    event.preventDefault()
+
+    const trimmedSearch =
+      searchInput.trim()
+
+    const params: Record<string, string> = {
+      page: "1",
+    }
+
+    if (trimmedSearch) {
+      params.search = trimmedSearch
+    }
+
+    if (selectedCategory) {
+      params.category =
+        selectedCategory
+    }
+
+    if (sort) {
+      params.sort = sort
+    }
+
+    setSearchParams(params)
+  }
+
+  // Clears the current search
+  // while preserving other filters.
+  const handleClear = () => {
+
+    setSearchInput("")
+
+    const params: Record<string, string> = {
+      page: "1",
+    }
+
+    if (selectedCategory) {
+      params.category =
+        selectedCategory
+    }
+
+    if (sort) {
+      params.sort = sort
+    }
+
+    setSearchParams(params)
+  }
+
+  // Changes the selected category
+  // and resets pagination.
   const handleCategoryChange = (
     categorySlug: string
   ) => {
@@ -136,12 +230,14 @@ const Products = () => {
     setSearchParams(params)
   }
 
-  // Changes sorting and resets pagination.
+  // Changes sorting
+  // and resets pagination.
   const handleSortChange = (
     event: ChangeEvent<HTMLSelectElement>
   ) => {
 
-    const selectedSort = event.target.value as ProductSort
+    const selectedSort =
+      event.target.value as ProductSort
 
     const params: Record<string, string> = {
       page: "1",
@@ -152,7 +248,8 @@ const Products = () => {
     }
 
     if (selectedCategory) {
-      params.category = selectedCategory
+      params.category =
+        selectedCategory
     }
 
     if (selectedSort) {
@@ -162,7 +259,8 @@ const Products = () => {
     setSearchParams(params)
   }
 
-  // Changes the current page while preserving active filters.
+  // Changes the current page
+  // while preserving active filters.
   const handlePageChange = (
     newPage: number
   ) => {
@@ -176,7 +274,8 @@ const Products = () => {
     }
 
     if (selectedCategory) {
-      params.category = selectedCategory
+      params.category =
+        selectedCategory
     }
 
     if (sort) {
@@ -188,34 +287,38 @@ const Products = () => {
 
   if (isLoading) {
     return (
-      <p>Loading products...</p>
+      <p>
+        Loading products...
+      </p>
     )
   }
 
   if (isError) {
     return (
-      <p>Error: {error.message}</p>
+      <p>
+        Error: {error.message}
+      </p>
     )
   }
 
-  // TypeScript can now safely assume that data exists below this point.
   if (!data) {
     return null
   }
 
-  // Calculates the total number of pages.
   const totalPages = Math.ceil(
     data.total / PRODUCTS_PER_PAGE
   )
 
-  const hasPreviousPage = page > 1
-  const hasNextPage = page < totalPages
+  const hasPreviousPage =
+    page > 1
+
+  const hasNextPage =
+    page < totalPages
 
   return (
 
     <main className={styles.products}>
 
-      {/* Page heading. */}
       <header className={styles.header}>
 
         <p className={styles.subtitle}>
@@ -223,6 +326,43 @@ const Products = () => {
         </p>
 
       </header>
+
+      {/* Search controls. */}
+      <form
+        className={styles.searchForm}
+        onSubmit={handleSubmit}
+      >
+
+        <input
+          className={styles.searchInput}
+          type="search"
+          value={searchInput}
+          onChange={(event) => {
+            setSearchInput(
+              event.target.value
+            )
+          }}
+          placeholder="Search products..."
+        />
+
+        <button
+          className={styles.searchButton}
+          type="submit"
+        >
+          Search
+        </button>
+
+        {search && (
+          <button
+            className={styles.clearButton}
+            type="button"
+            onClick={handleClear}
+          >
+            Clear
+          </button>
+        )}
+
+      </form>
 
       {/* Category filter controls. */}
       <section className={styles.categories}>
@@ -242,27 +382,42 @@ const Products = () => {
           </button>
 
           {categoriesLoading && (
-            <p>Loading categories...</p>
+            <p>
+              Loading categories...
+            </p>
           )}
 
           {categoriesError && (
-            <p>Failed to load categories.</p>
+            <p>
+              Failed to load categories.
+            </p>
           )}
 
-          {categories?.map((categoryItem) => (
-            <button
-              className={
-                categoryItem.slug === selectedCategory
-                  ? styles.categoryActive
-                  : styles.category
-              }
-              key={categoryItem.slug}
-              type="button"
-              onClick={() => handleCategoryChange(categoryItem.slug)}
-            >
-              {formatCategory(categoryItem.name)}
-            </button>
-          ))}
+          {categories?.map(
+            (categoryItem) => (
+
+              <button
+                className={
+                  categoryItem.slug ===
+                  selectedCategory
+                    ? styles.categoryActive
+                    : styles.category
+                }
+                key={categoryItem.slug}
+                type="button"
+                onClick={() =>
+                  handleCategoryChange(
+                    categoryItem.slug
+                  )
+                }
+              >
+                {formatCategory(
+                  categoryItem.name
+                )}
+              </button>
+
+            )
+          )}
 
         </div>
 
@@ -325,26 +480,27 @@ const Products = () => {
 
       </section>
 
-      {/* Shows a loading indicator while filters or pages are updating. */}
       {isFetching && (
         <p className={styles.loading}>
           Updating products...
         </p>
       )}
 
-      {/* Product grid. */}
       <section className={styles.grid}>
 
-        {data.products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-          />
-        ))}
+        {data.products.map(
+          (product) => (
+
+            <ProductCard
+              key={product.id}
+              product={product}
+            />
+
+          )
+        )}
 
       </section>
 
-      {/* Pagination controls. */}
       {totalPages > 1 && (
 
         <nav
@@ -355,7 +511,9 @@ const Products = () => {
           <button
             className={styles.pageButton}
             type="button"
-            onClick={() => handlePageChange(page - 1)}
+            onClick={() =>
+              handlePageChange(page - 1)
+            }
             disabled={!hasPreviousPage}
           >
             PREVIOUS
@@ -368,7 +526,9 @@ const Products = () => {
           <button
             className={styles.pageButton}
             type="button"
-            onClick={() => handlePageChange(page + 1)}
+            onClick={() =>
+              handlePageChange(page + 1)
+            }
             disabled={!hasNextPage}
           >
             NEXT
