@@ -1,3 +1,25 @@
+.products {
+    width: 100%;
+}
+
+.header {
+    padding: 1rem;
+}
+
+.subtitle {
+    font-size: 1rem;
+    font-weight: var(--font-medium);
+}
+
+
+/* ================================
+   Categories
+   ================================ */
+
+.categories {
+    width: 100%;
+}
+
 .categoryList {
     display: flex;
     gap: 0.75rem;
@@ -13,30 +35,122 @@
     display: none;
 }
 
-.category {
-    flex-grow: 0;
-    flex-shrink: 0;
-    flex-basis: auto;
+.category,
+.categoryActive {
+    flex: 0 0 auto;
 
     padding: 0.5rem 1rem;
 
     border-radius: 999px;
-
-    background-color: var(--tertiary-color);
 
     white-space: nowrap;
 }
 
-.categoryActive {
-    flex-grow: 0;
-    flex-shrink: 0;
-    flex-basis: auto;
+.category {
+    background-color: var(--tertiary-color);
+}
 
+.categoryActive {
+    background-color: var(--primary-color);
+}
+
+
+/* ================================
+   Toolbar
+   ================================ */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 1rem;
+}
+
+.productCount {
+    font-size: 0.9rem;
+    font-weight: var(--font-medium);
+}
+
+.sortWrapper {
+    display: flex;
+    align-items: center;
+
+    gap: 0.5rem;
+}
+
+.sortLabel {
+    font-size: 0.9rem;
+}
+
+.sort {
+    padding: 0.35rem 0.5rem;
+
+    border-radius: 6px;
+
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+
+
+/* ================================
+   Loading
+   ================================ */
+
+.loading {
+    padding: 0 1rem 1rem;
+
+    font-size: 0.9rem;
+}
+
+
+/* ================================
+   Product grid
+   ================================ */
+
+.grid {
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 1rem;
+
+    padding: 0 1rem;
+}
+
+
+/* ================================
+   Pagination
+   ================================ */
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 1rem;
+
+    padding: 2rem 1rem;
+}
+
+.pageButton {
     padding: 0.5rem 1rem;
 
-    border-radius: 999px;
+    border-radius: 6px;
 
-    background-color: var(--primary-color);
+    background-color: var(--tertiary-color);
 
-    white-space: nowrap;
+    font-size: 0.85rem;
+    font-weight: var(--font-semibold);
+}
+
+.pageButton:disabled {
+    opacity: 0.5;
+
+    cursor: not-allowed;
+}
+
+.pageInfo {
+    font-size: 0.9rem;
+    font-weight: var(--font-medium);
 }

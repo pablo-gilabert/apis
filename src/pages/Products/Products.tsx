@@ -1,5 +1,4 @@
-import { useState } from "react"
-import type { ChangeEvent, FormEvent } from "react"
+import type { ChangeEvent } from "react"
 
 import { useQuery } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
@@ -38,9 +37,6 @@ const Products = () => {
 
   // Calculates how many products must be skipped for the current page.
   const skip = (page - 1) * PRODUCTS_PER_PAGE
-
-  // Keeps the search input independent from the submitted search query.
-  const [searchInput, setSearchInput] = useState(search)
 
   // Fetches products according to the current filters.
   const {
@@ -100,54 +96,6 @@ const Products = () => {
     queryKey: ["categories"],
     queryFn: getCategories,
   })
-
-  // Submits the search form and updates the URL parameters.
-  const handleSubmit = (
-    event: FormEvent<HTMLFormElement>
-  ) => {
-
-    event.preventDefault()
-
-    const trimmedSearch = searchInput.trim()
-
-    const params: Record<string, string> = {
-      page: "1",
-    }
-
-    if (trimmedSearch) {
-      params.search = trimmedSearch
-    }
-
-    if (selectedCategory) {
-      params.category = selectedCategory
-    }
-
-    if (sort) {
-      params.sort = sort
-    }
-
-    setSearchParams(params)
-  }
-
-  // Clears the current search while preserving the other filters.
-  const handleClear = () => {
-
-    setSearchInput("")
-
-    const params: Record<string, string> = {
-      page: "1",
-    }
-
-    if (selectedCategory) {
-      params.category = selectedCategory
-    }
-
-    if (sort) {
-      params.sort = sort
-    }
-
-    setSearchParams(params)
-  }
 
   // Changes the selected category and resets pagination.
   const handleCategoryChange = (
@@ -276,36 +224,6 @@ const Products = () => {
 
       </header>
 
-      {/* Search controls. */}
-      <form
-        className={styles.searchForm}
-        onSubmit={handleSubmit}>
-
-        <input
-          className={styles.searchInput}
-          type="search"
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Search products..."
-        />
-
-        <button
-          className={styles.searchButton}
-          type="submit">
-          Search
-        </button>
-
-        {search && (
-          <button
-            className={styles.clearButton}
-            type="button"
-            onClick={handleClear}>
-            Clear
-          </button>
-        )}
-
-      </form>
-
       {/* Category filter controls. */}
       <section className={styles.categories}>
 
@@ -333,16 +251,16 @@ const Products = () => {
 
           {categories?.map((categoryItem) => (
             <button
-                className={
-                  categoryItem.slug === selectedCategory
-                    ? styles.categoryActive
-                    : styles.category
-                }
-                key={categoryItem.slug}
-                type="button"
-                onClick={() => handleCategoryChange(categoryItem.slug)}>
-                {/* --- CATEGORY BUTTON NAME --- */}
-                {formatCategory(categoryItem.name)}
+              className={
+                categoryItem.slug === selectedCategory
+                  ? styles.categoryActive
+                  : styles.category
+              }
+              key={categoryItem.slug}
+              type="button"
+              onClick={() => handleCategoryChange(categoryItem.slug)}
+            >
+              {formatCategory(categoryItem.name)}
             </button>
           ))}
 
