@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react"
 
 import { IoIosMenu } from "react-icons/io"
+import { FaShoppingCart } from "react-icons/fa"
+
 import {
   NavLink,
   useLocation,
 } from "react-router-dom"
+
+import { useCart } from "../../CartContext/useCart"
 
 import styles from "./Navbar.module.css"
 
@@ -12,6 +16,16 @@ const Navbar = () => {
 
   // Provides access to the current URL path.
   const location = useLocation()
+
+  // Provides access to the current cart state.
+  const { items } = useCart()
+
+  // Calculates the total number of units in the cart.
+  const cartCount = items.reduce(
+    (total, item) =>
+      total + item.quantity,
+    0
+  )
 
   // Controls whether the navigation menu is visible.
   const [menuOpen, setMenuOpen] = useState(false)
@@ -32,11 +46,15 @@ const Navbar = () => {
   // Closes the menu when the user clicks outside the navbar.
   useEffect(() => {
 
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (
+      event: MouseEvent
+    ) => {
 
       if (
         navbarRef.current &&
-        !navbarRef.current.contains(event.target as Node)
+        !navbarRef.current.contains(
+          event.target as Node
+        )
       ) {
         setMenuOpen(false)
       }
@@ -49,10 +67,12 @@ const Navbar = () => {
     )
 
     return () => {
+
       document.removeEventListener(
         "mousedown",
         handleClickOutside
       )
+
     }
 
   }, [])
@@ -62,16 +82,23 @@ const Navbar = () => {
   // If the user clicks the link corresponding to the
   // current route, scroll back to the top instead of
   // navigating to the same route again.
-  const handleNavigation = (path: string) => {
+  const handleNavigation = (
+    path: string
+  ) => {
 
     closeMenu()
 
-    if (location.pathname === path) {
+    if (
+      location.pathname === path
+    ) {
+
       window.scrollTo({
         top: 0,
         behavior: "smooth",
       })
+
     }
+
   }
 
   return (
@@ -84,6 +111,22 @@ const Navbar = () => {
       <h1 className={styles.title}>
         Dummy Data
       </h1>
+
+      <NavLink
+        className={styles.cart}
+        to="/cart"
+        aria-label={`Cart with ${cartCount} items`}
+      >
+
+        <FaShoppingCart />
+
+        {cartCount > 0 && (
+          <span className={styles.cartCount}>
+            {cartCount}
+          </span>
+        )}
+
+      </NavLink>
 
       <button
         className={styles.menu}

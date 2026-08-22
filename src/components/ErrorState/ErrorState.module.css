@@ -1,0 +1,24 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 0.5rem;
+
+    padding: 3rem 1rem;
+
+    text-align: center;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: var(--font-semibold);
+}
+
+.status {
+    font-size: 0.9rem;
+}
+
+.message {
+    font-size: 1rem;
+}

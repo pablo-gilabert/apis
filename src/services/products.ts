@@ -2,6 +2,8 @@ import type { Category } from "../types/Category"
 import type { Product } from "../types/Product"
 import type { ProductResponse } from "../types/ProductResponse"
 
+import { api } from "./api"
+
 export type ProductSort =
   | ""
   | "price-asc"
@@ -76,37 +78,31 @@ export const getProducts = async ({
   })
 
   if (sortParams.sortBy) {
-    params.set("sortBy", sortParams.sortBy)
+    params.set(
+      "sortBy",
+      sortParams.sortBy
+    )
   }
 
   if (sortParams.order) {
-    params.set("order", sortParams.order)
+    params.set(
+      "order",
+      sortParams.order
+    )
   }
 
-  const response = await fetch(
-    `https://dummyjson.com/products?${params.toString()}`
+  return api<ProductResponse>(
+    `/products?${params.toString()}`
   )
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch products")
-  }
-
-  return response.json()
 }
 
 export const getProduct = async (
   id: number
 ): Promise<Product> => {
 
-  const response = await fetch(
-    `https://dummyjson.com/products/${id}`
+  return api<Product>(
+    `/products/${id}`
   )
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch product")
-  }
-
-  return response.json()
 }
 
 export const searchProducts = async (
@@ -125,35 +121,29 @@ export const searchProducts = async (
   })
 
   if (sortParams.sortBy) {
-    params.set("sortBy", sortParams.sortBy)
+    params.set(
+      "sortBy",
+      sortParams.sortBy
+    )
   }
 
   if (sortParams.order) {
-    params.set("order", sortParams.order)
+    params.set(
+      "order",
+      sortParams.order
+    )
   }
 
-  const response = await fetch(
-    `https://dummyjson.com/products/search?${params.toString()}`
+  return api<ProductResponse>(
+    `/products/search?${params.toString()}`
   )
-
-  if (!response.ok) {
-    throw new Error("Failed to search products")
-  }
-
-  return response.json()
 }
 
 export const getCategories = async (): Promise<Category[]> => {
 
-  const response = await fetch(
-    "https://dummyjson.com/products/categories"
+  return api<Category[]>(
+    "/products/categories"
   )
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch categories")
-  }
-
-  return response.json()
 }
 
 export const getProductsByCategory = async (
@@ -171,20 +161,148 @@ export const getProductsByCategory = async (
   })
 
   if (sortParams.sortBy) {
-    params.set("sortBy", sortParams.sortBy)
+    params.set(
+      "sortBy",
+      sortParams.sortBy
+    )
   }
 
   if (sortParams.order) {
-    params.set("order", sortParams.order)
+    params.set(
+      "order",
+      sortParams.order
+    )
   }
 
-  const response = await fetch(
-    `https://dummyjson.com/products/category/${encodeURIComponent(category)}?${params.toString()}`
+  return api<ProductResponse>(
+    `/products/category/${encodeURIComponent(category)}?${params.toString()}`
   )
+}
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch products by category")
+interface GetFilteredProductsParams {
+  search?: string
+  category?: string
+  limit: number
+  skip: number
+  sort?: ProductSort
+}
+
+export const getFilteredProducts = async ({
+  search = "",
+  category = "",
+  limit,
+  skip,
+  sort = "",
+}: GetFilteredProductsParams): Promise<ProductResponse> => {
+
+  const sortParams = getSortParams(sort)
+
+  /*
+   * When there is a search query, DummyJSON provides
+   * the search endpoint. We request all matching products
+   * so we can apply the category filter before pagination.
+   */
+  if (search) {
+
+    const searchParams = new URLSearchParams({
+      q: search,
+      limit: "0",
+    })
+
+    const searchResponse = await api<ProductResponse>(
+      `/products/search?${searchParams.toString()}`
+    )
+
+    let products = searchResponse.products
+
+    /*
+     * DummyJSON does not provide a combined
+     * search + category endpoint, so the category
+     * filter is applied on the client.
+     */
+    if (category) {
+
+      products = products.filter(
+        (product) =>
+          product.category === category
+      )
+    }
+
+    /*
+     * Apply sorting after filtering so the
+     * sorting is global across the results.
+     */
+    if (sortParams.sortBy && sortParams.order) {
+
+      products = [...products].sort(
+        (a, b) => {
+
+          const field =
+            sortParams.sortBy as keyof Product
+
+          const valueA = a[field]
+          const valueB = b[field]
+
+          if (
+            typeof valueA === "number" &&
+            typeof valueB === "number"
+          ) {
+            return sortParams.order === "asc"
+              ? valueA - valueB
+              : valueB - valueA
+          }
+
+          if (
+            typeof valueA === "string" &&
+            typeof valueB === "string"
+          ) {
+            return sortParams.order === "asc"
+              ? valueA.localeCompare(valueB)
+              : valueB.localeCompare(valueA)
+          }
+
+          return 0
+        }
+      )
+    }
+
+    const total = products.length
+
+    const paginatedProducts =
+      products.slice(
+        skip,
+        skip + limit
+      )
+
+    return {
+      products: paginatedProducts,
+      total,
+      skip,
+      limit,
+    }
   }
 
-  return response.json()
+  /*
+   * Without a search query, use the category
+   * endpoint when a category is selected.
+   */
+  if (category) {
+
+    return getProductsByCategory(
+      category,
+      limit,
+      skip,
+      sort
+    )
+  }
+
+  /*
+   * Without search or category, use the
+   * regular products endpoint.
+   */
+  return getProducts({
+    limit,
+    skip,
+    sort,
+  })
 }

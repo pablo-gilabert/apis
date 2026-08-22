@@ -4,30 +4,22 @@ import type {
   FormEvent,
 } from "react"
 
-import {
-  useQuery,
-} from "@tanstack/react-query"
-
-import {
-  useSearchParams,
-} from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
+import { useSearchParams } from "react-router-dom"
 
 import {
   getCategories,
-  getProducts,
-  getProductsByCategory,
-  searchProducts,
+  getFilteredProducts,
 } from "../../services/products"
 
-import type {
-  ProductSort,
-} from "../../services/products"
+import type { ProductSort } from "../../services/products"
 
 import ProductCard from "../../components/ProductCard/ProductCard"
+import LoadingState from "../../components/LoadingState/LoadingState"
+import ErrorState from "../../components/ErrorState/ErrorState"
+import EmptyState from "../../components/EmptyState/EmptyState"
 
-import {
-  formatCategory,
-} from "../../utils/formatCategory"
+import { formatCategory } from "../../utils/formatCategory"
 
 import styles from "./Products.module.css"
 
@@ -60,8 +52,8 @@ const Products = () => {
       ? currentPage
       : 1
 
-  // Calculates how many products must be
-  // skipped for the current page.
+  // Calculates how many products must be skipped
+  // for the current page.
   const skip =
     (page - 1) * PRODUCTS_PER_PAGE
 
@@ -72,8 +64,8 @@ const Products = () => {
     setSearchInput,
   ] = useState(search)
 
-  // Fetches products according to
-  // the current filters.
+  // Fetches products according to the current
+  // search, category, sorting and pagination.
   const {
     data,
     isLoading,
@@ -90,34 +82,15 @@ const Products = () => {
       page,
     ],
 
-    queryFn: async () => {
-
-      if (selectedCategory) {
-
-        return getProductsByCategory(
-          selectedCategory,
-          PRODUCTS_PER_PAGE,
-          skip,
-          sort
-        )
-      }
-
-      if (search) {
-
-        return searchProducts(
-          search,
-          PRODUCTS_PER_PAGE,
-          skip,
-          sort
-        )
-      }
-
-      return getProducts({
+    queryFn: () => (
+      getFilteredProducts({
+        search,
+        category: selectedCategory,
         limit: PRODUCTS_PER_PAGE,
         skip,
         sort,
       })
-    },
+    ),
 
     // Keeps the previous page visible
     // while the next page is loading.
@@ -126,8 +99,7 @@ const Products = () => {
     ) => previousData,
   })
 
-  // Fetches all available
-  // product categories.
+  // Fetches all available product categories.
   const {
     data: categories,
     isLoading: categoriesLoading,
@@ -169,7 +141,7 @@ const Products = () => {
   }
 
   // Clears the current search
-  // while preserving other filters.
+  // while preserving the other filters.
   const handleClear = () => {
 
     setSearchInput("")
@@ -285,26 +257,41 @@ const Products = () => {
     setSearchParams(params)
   }
 
+  // Initial loading state.
   if (isLoading) {
     return (
-      <p>
-        Loading products...
-      </p>
+      <LoadingState
+        message="Loading products..."
+      />
     )
   }
 
+  // Error state.
   if (isError) {
     return (
-      <p>
-        Error: {error.message}
-      </p>
+      <ErrorState
+        error={error}
+      />
     )
   }
 
+  // TypeScript can safely assume that
+  // data exists below this point.
   if (!data) {
     return null
   }
 
+  // Empty state.
+  if (data.products.length === 0) {
+    return (
+      <EmptyState
+        title="No products found"
+        message="Try another search or category."
+      />
+    )
+  }
+
+  // Calculates the total number of pages.
   const totalPages = Math.ceil(
     data.total / PRODUCTS_PER_PAGE
   )
@@ -319,6 +306,7 @@ const Products = () => {
 
     <main className={styles.products}>
 
+      {/* Page heading. */}
       <header className={styles.header}>
 
         <p className={styles.subtitle}>
@@ -480,12 +468,15 @@ const Products = () => {
 
       </section>
 
+      {/* Shows a loading indicator
+          while filters or pages are updating. */}
       {isFetching && (
         <p className={styles.loading}>
           Updating products...
         </p>
       )}
 
+      {/* Product grid. */}
       <section className={styles.grid}>
 
         {data.products.map(
@@ -501,6 +492,7 @@ const Products = () => {
 
       </section>
 
+      {/* Pagination controls. */}
       {totalPages > 1 && (
 
         <nav

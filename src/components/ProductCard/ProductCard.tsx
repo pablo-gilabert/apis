@@ -1,8 +1,11 @@
 import type { Product } from "../../types/Product"
 
-import { FaStar} from "react-icons/fa6";
+import { FaStar } from "react-icons/fa6"
 
-import { Link } from "react-router-dom"
+import {
+  Link,
+  useLocation,
+} from "react-router-dom"
 
 import { formatCategory } from "../../utils/formatCategory"
 
@@ -12,45 +15,68 @@ interface ProductCardProps {
   product: Product
 }
 
-const ProductCard = ({ product } : ProductCardProps) => {
+const ProductCard = ({
+  product,
+}: ProductCardProps) => {
+
+  const location = useLocation()
+
+  const currentLocation =
+    location.pathname +
+    location.search
 
   return (
 
-  <Link to={`/products/${product.id}`}>
-    <article className={styles.card}>
+    <Link
+      to={`/products/${product.id}`}
+      state={{
+        from: currentLocation,
+      }}
+    >
 
-      <img
-        className={styles.image}
-        src={product.thumbnail}
-        alt={product.title}
-      />
+      <article className={styles.card}>
 
-      <div className={styles.background}>
+        <img
+          className={styles.image}
+          src={product.thumbnail}
+          alt={product.title}
+        />
 
-        <h1 className={styles.category}>
-          {formatCategory(product.category)}
-        </h1>
+        <div className={styles.background}>
 
-        <h2 className={styles.title}>
-          {product.title}
-        </h2>
+          <h1 className={styles.category}>
+            {formatCategory(
+              product.category
+            )}
+          </h1>
 
-        <p className={styles.rating}>
-          <FaStar className={styles.ratingIcon}/>
+          <h2 className={styles.title}>
+            {product.title}
+          </h2>
 
-          {product.rating}  
-        </p>      
+          <p className={styles.rating}>
 
-        <p className={styles.price}>$ {product.price}</p>
+            <FaStar
+              className={styles.ratingIcon}
+            />
 
-        <p className={styles.details}>
-          See details...
-        </p>
+            {product.rating}
 
-      </div>
+          </p>
 
-    </article>
-  </Link>
+          <p className={styles.price}>
+            $ {product.price}
+          </p>
+
+          <p className={styles.details}>
+            See details...
+          </p>
+
+        </div>
+
+      </article>
+
+    </Link>
   )
 }
 
